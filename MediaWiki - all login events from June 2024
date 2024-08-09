@@ -1,0 +1,61 @@
+# retrieve all events from June 2024
+
+// Function to fetch log events
+async function fetchLogEvents(limit = 500, continueToken = '') {
+  const baseUrl = '/api.php?action=query&format=json&list=logevents&lelimit=' + limit;
+  const dateParams = '&lestart=2024-07-01T00:00:00Z&leend=2024-06-01T00:00:00Z'; // June 2024
+  const url = baseUrl + dateParams + (continueToken ? '&lecontinue=' + continueToken : '');
+  
+  try {
+    const response = await fetch(url);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return null;
+  }
+}
+
+// Function to fetch all log events
+async function fetchAllLogEvents() {
+  let allEvents = [];
+  let continueToken = '';
+  
+  do {
+    const data = await fetchLogEvents(500, continueToken);
+    if (!data || !data.query || !data.query.logevents) break;
+    
+    allEvents = allEvents.concat(data.query.logevents);
+    continueToken = data.continue ? data.continue.lecontinue : '';
+    
+    console.log(`Fetched ${allEvents.length} events so far...`);
+  } while (continueToken);
+  
+  return allEvents;
+}
+
+// Main function to fetch and output data
+async function getLogsForPowerBI() {
+  console.log('Fetching log events for June 2024...');
+  const allEvents = await fetchAllLogEvents();
+  
+  console.log('All log events fetched. Total events:', allEvents.length);
+  
+  // Convert to JSON string
+  const jsonOutput = JSON.stringify(allEvents, null, 2);
+  
+  // Output to console
+  console.log('Copy the following JSON for use in Power BI:');
+  console.log(jsonOutput);
+  
+  // Optionally, you can also copy to clipboard
+  // Note: This may not work in all browsers due to security restrictions
+  try {
+    await navigator.clipboard.writeText(jsonOutput);
+    console.log('JSON copied to clipboard!');
+  } catch (err) {
+    console.warn('Unable to copy to clipboard. Please copy the JSON manually.', err);
+  }
+}
+
+// Run the main function
+getLogsForPowerBI();
