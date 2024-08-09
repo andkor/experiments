@@ -1,0 +1,6 @@
+
+
+fetch('/api.php?action=query&format=json&list=logevents&letype=login&lelimit=10')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
